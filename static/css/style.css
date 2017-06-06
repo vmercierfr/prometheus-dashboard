@@ -1,0 +1,15 @@
+small {
+    color: #ACACAC;
+}
+#alerts thead tr th {
+    border-color: #C0C0C0;
+}
+#alerts tfoot tr th {
+    border: 0;
+}
+table.dataTable.no-footer {
+    border: 0;
+}
+.searchfield {
+    width: 100%;
+}

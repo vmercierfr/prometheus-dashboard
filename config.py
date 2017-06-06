@@ -1,0 +1,3 @@
+DEBUG = False
+PORT = 8000
+ALERT_TTL = 10

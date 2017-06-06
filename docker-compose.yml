@@ -1,0 +1,12 @@
+version: '2'
+services:
+  redis:
+    image: redis
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    links:
+      - redis

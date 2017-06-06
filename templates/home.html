@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Alerts</title>
+    <!-- Automatically refresh page -->
+    <meta http-equiv="refresh" content="15">
+
+    <!-- Set responsive design -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- DataTable -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css">
+
+    <!-- App style -->
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+
+    <!-- MomentJS : Need to load it before to use it -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    {% for alert in alerts %}
+    <div class="modal fade" id="modal_{{ loop.index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">{{ alert.labels.alertname }} on {{ alert.labels.instance }}</h4>
+                </div>
+                <div class="modal-body">
+
+                    <h3 class="center">Information</h3>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Summary</td>
+                                <td>{{ alert.annotations.summary }}</td>
+                            </tr>
+                            <tr>
+                                <td>Description</td>
+                                <td>{{ alert.annotations.description }}</td>
+                            </tr>
+                            <tr>
+                                <td>Started</td>
+                                <td>{{ alert.startsAt }}</td>
+                            </tr>
+                            <tr>
+                                <td>Generator URL</td>
+                                <td>
+                                    <a href="{{ alert.generatorURL }}" target="_blank" class="btn btn-default btn-xs">Open URL <span class="glyphicon glyphicon-stats"></span></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="center">Labels</h3>
+                    <table class="table">
+                        <tbody>
+                            {% for key in alert.labels|sort %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>{{ alert.labels[key] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <br/>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 col-xs-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        <h1 style="margin: 5px">
+                            Active alerts
+                        </h1>
+                        <small>
+                            <script type="text/javascript">
+                                document.write(moment().format('ll') + ' - ' + moment().format('LTS'));
+                            </script>
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-xs-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        <h1>{{ stats.alerts }} <small>alerts</small></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-xs-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        <h1>{{ stats.hosts }} <small>hosts</small></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+        		{% if alerts %}
+                <table id="alerts" class="table">
+                    <thead>
+                        <tr>
+                            <th>Host</th>
+                            <th>Alert</th>
+                            <th>Summary</th>
+                            <th>Severity</th>
+                            <th>Started</th>
+                            <th class="no-sort"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr class="{% if alert.labels.severity == 'critical' %}danger{% elif alert.labels.severity == 'warning' %}warning{% else %}defaut{% endif %}">
+                            <td>{{ alert.labels.instance }}</td>
+                            <td>{{ alert.labels.alertname }}</td>
+                            <td>
+                                {{ alert.annotations.summary }}<br/>
+                                <small>
+                                    {{ alert.annotations.description }}
+                                </small>
+                            </td>
+                            <td>{{ alert.labels.severity }}</td>
+                            <td title="{{ alert.startsAt }}">
+                                <script type="text/javascript">document.write(moment("{{ alert.startsAt }}").startOf('hour').fromNow())</script><br/>
+                            </td>
+                            <td nowrap>
+                                <button title="View alert details" type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#modal_{{ loop.index }}">View</button>
+                                <a href="{{ alert.generatorURL }}" title="Open generator URL" target="_blank" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-stats"></span></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        		{% else %}
+        		No alerts
+        		{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Jquery -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!-- DataTable -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+
+    <!-- Application -->
+    <script type="text/javascript" src="/static/js/app.js"></script>
+</body>
+</html>
